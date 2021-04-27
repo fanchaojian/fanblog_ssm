@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fanchaojian.dao.BlogAdminMapper">
+
+    <!--查找管理员信息,默认为数据库排序的第一条记录-->
+    <select id="findAdmin" resultType="BlogAdmin" >
+        select
+            name,job,email,place,hobby,motto,introUrl,gender,iconUrl,qqQrcode,wechatQrcode,weboQrcode,gghQrcode,githubUrl
+        from blogadmin
+            order by preOrder asc limit 1
+    </select>
+
+    <!--修改基本信息-->
+    <update id="updateBlogAdmin" parameterType="BlogAdmin" >
+      update blogadmin set
+              name=#{name},
+              job=#{job},
+              email=#{email},
+              place=#{place},
+              hobby=#{hobby},
+              motto=#{motto},
+              introUrl=#{introUrl},
+              gender=#{gender},
+              iconUrl=#{iconUrl},
+              qqQrcode=#{qqQrcode},
+              wechatQrcode=#{wechatQrcode},
+              weboQrcode=#{weboQrcode},
+              gghQrcode=#{gghQrcode},
+              githubUrl=#{githubUrl}
+        where adminId = #{adminId}
+    </update>
+
+    <!--修改密码-->
+    <update id="updateLoginInfo" parameterType="map">
+        update blogadmin set password = #{password} where adminId = #{adminId}
+    </update>
+
+    <!--登录逻辑-->
+    <select id="login" parameterType="map" resultMap="siteBaseInfo" >
+      select
+        b.name,b.job,b.email,b.place,b.hobby,b.motto,b.introUrl,b.gender,b.iconUrl,b.qqQrcode,b.wechatQrcode,b.weboQrcode,b.gghQrcode,b.githubUrl,
+        s.articleCount,s.logoImg,s.siteAge,s.siteBgiUrl,s.siteIntroUrl,s.siteName,s.siteQrcode,s.visitorCount
+      from blogadmin b,siteinfo s
+      where b.username = #{username} and b.password = #{password}
+    </select>
+    <resultMap id="siteBaseInfo" type="BlogAdmin">
+        <result property="name" column="name" ></result>
+        <result property="job" column="job" ></result>
+        <result property="email" column="email" ></result>
+        <result property="place" column="place" ></result>
+        <result property="hobby" column="hobby" ></result>
+        <result property="motto" column="motto" ></result>
+        <result property="introUrl" column="introUrl" ></result>
+        <result property="gender" column="gender" ></result>
+        <result property="iconUrl" column="iconUrl" ></result>
+        <result property="qqQrcode" column="qqQrcode" ></result>
+        <result property="wechatQrcode" column="wechatQrcode" ></result>
+        <result property="weboQrcode" column="weboQrcode" ></result>
+        <result property="gghQrcode" column="gghQrcode" ></result>
+        <result property="githubUrl" column="githubUrl" ></result>
+        <association property="siteInfo" column="siteId" javaType="SiteInfo">
+            <result property="articleCount" column="articleCount" ></result>
+            <result property="logoImg" column="logoImg" ></result>
+            <result property="siteAge" column="siteAge" ></result>
+            <result property="siteBgiUrl" column="siteBgiUrl" ></result>
+            <result property="siteIntroUrl" column="siteIntroUrl" ></result>
+            <result property="siteName" column="siteName" ></result>
+            <result property="siteQrcode" column="siteQrcode" ></result>
+            <result property="visitorCount" column="visitorCount" ></result>
+        </association>
+    </resultMap>
+
+</mapper>

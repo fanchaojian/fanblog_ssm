@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fanchaojian.dao.ReplyMapper">
+
+    <!--//添加回复，返回回复的id
+    int addReply(Reply reply) ;
+
+    //通过replyId删除回复
+    void deleteById(int replyId) ;
+
+    //通过commentId删除所有回复
+    void deleteByComment(int commentId) ;
+
+    //通过replyid查找回复,一并查找关联from_user
+    Reply findById(int replyId) ;  -->
+
+    <!--添加回复-->
+    <insert id="addReply" parameterType="map" useGeneratedKeys="true" keyProperty="id">
+        insert into reply (articleId, content, createDate, replyType, targetId, commentId, fromUid, toUid)  VALUES
+        (#{articleId}, #{content}, #{createDate}, #{replyType}, #{targetId}, #{commentId}, #{fromUid}, #{toUid})
+    </insert>
+
+    <!--通过回复id删除回复-->
+    <delete id="deleteById" parameterType="_int" >
+        delete from reply where id = #{replyId}
+    </delete>
+
+    <!--通过评论删除所有的回复-->
+    <delete id="deleteByComment" parameterType="_int">
+        delete from reply where commentId = #{commentId}
+    </delete>
+
+    <!--通过id查找回复及其关联的用户-->
+    <select id="findById" parameterType="_int" resultMap="selectAssoUser" >
+        select * from reply where id = #{replyId}
+    </select>
+    
+    <resultMap id="selectAssoUser" type="Reply">
+        <association property="fromUser" column="fromUid" javaType="User" select="findFromUser"></association>
+        <association property="toUser" column="toUid" javaType="User" select="findFromUser"></association>
+    </resultMap>
+    
+    <select id="findFromUser" parameterType="_int" resultType="User">
+        select * from user where userId = #{userId}
+    </select>
+
+</mapper>

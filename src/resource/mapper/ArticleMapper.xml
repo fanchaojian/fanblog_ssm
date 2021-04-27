@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fanchaojian.dao.ArticleMapper">
+    <!--新增文章-->
+    <insert id="saveArticle" parameterType="map" useGeneratedKeys="true" keyProperty="articleId">
+        insert into article (title,author,content,iconUrl,intro,reprintSite,createDate,commentCount,likeCount,readCount,labelId)
+        values (#{title},#{author},#{content},#{iconUrl},#{intro},#{reprintSite},#{createDate},#{commentCount},#{likeCount},#{readCount},#{labelId})
+    </insert>
+
+    <!--删除文章-->
+    <delete id="deleteArticle" parameterType="_int" >
+        delete from article where articleId =  #{articleId}
+    </delete>
+
+    <!--通过id查找-->
+    <select id="findById" parameterType="int" resultMap="getLabelById">
+        select * from article where articleId = #{articleId}
+    </select>
+
+    <!--关键字搜索-->
+    <select id="findByKeywords" parameterType="string" resultMap="getLabelById">
+        select * from article where (title like #{keywords} or content like #{keywords})
+    </select>
+    <select id="labelByid" parameterType="int" resultType="Label">
+        select * from label where labelId = #{labelId}
+    </select>
+    <resultMap id="getLabelById" type="Article">
+        <association property="label" column="labelid" javaType="Label" select="labelByid"></association>
+    </resultMap>
+
+    <!--获取所有的文章数据，并进行分页-->
+    <select id="findAll" parameterType="map" resultMap="getLabelById">
+        select * from article limit #{startIndex},#{pageCount}
+    </select>
+
+    <!--修改-->
+    <update id="updateArticle" parameterType="map">
+        update article set title=#{title},author=#{author},content=#{content},iconUrl=#{iconUrl},intro=#{intro},labelid=#{labelId} where articleId = #{articleId}
+    </update>
+
+    <!--通过标签名称查找所有文章(标签分类)-->
+    <select id="getArticleByLabel" parameterType="string" resultMap="selectArticleByLabel">
+        SELECT a.articleId,a.title,a.author,a.createDate,a.iconUrl,a.intro,a.likeCount,a.readCount,l.labelId,l.labelName
+        FROM article a LEFT JOIN label l ON a.labelid = l.labelId WHERE l.labelName = #{labelName} order by a.createDate DESC
+    </select>
+    <resultMap id="selectArticleByLabel" type="Article">
+        <result property="articleId" column="articleId"></result>
+        <result property="title" column="title" ></result>
+        <result property="author" column="author" ></result>
+        <result property="createDate" column="createDate" ></result>
+        <result property="iconUrl" column="iconUrl" ></result>
+        <result property="intro" column="intro" ></result>
+        <result property="likeCount" column="likeCount" ></result>
+        <result property="readCount" column="readCount" ></result>
+        <association property="label" column="labelid" javaType="Label">
+            <result property="labelId" column="labelId" ></result>
+            <result property="labelName" column="labelName" ></result>
+        </association>
+    </resultMap>
+
+    <!--通过年份分组查找所有的文章-->
+    <select id="getArticleByYear" resultMap="selectArticleByLabel">
+        SELECT a.articleId,a.title,a.author,a.createDate,a.iconUrl,a.intro,a.likeCount,a.readCount,l.labelId,l.labelName
+        FROM article a LEFT JOIN label l ON a.labelid = l.labelId order by a.createDate DESC
+    </select>
+
+    <!--增加评论数量-->
+    <update id="doComment" parameterType="_int">
+        update article set commentCount = commentCount+1 where articleId = #{articleId}
+    </update>
+
+    <!--增加获赞数-->
+    <select id="doLike" parameterType="_int">
+        update article set likeCount = likeCount+1 where articleId = #{articleId}
+    </select>
+
+    <!--添加阅读数-->
+    <select id="doRead" parameterType="_int">
+        update article set readCount = readCount+1 where articleId = #{articleId}
+    </select>
+    
+    
+
+</mapper>

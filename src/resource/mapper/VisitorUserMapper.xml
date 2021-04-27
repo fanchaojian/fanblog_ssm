@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fanchaojian.dao.VisitorUserMapper">
+
+
+    <!--平台注册用户登录逻辑-->
+    <select id="login" parameterType="map" resultType="User">
+        select * from user where name = #{name} and email = #{email} and registerMethod = #{registerMethod} and isInuse = 1
+    </select>
+
+    <!--添加用户-->
+    <insert id="addUser" parameterType="User" useGeneratedKeys="true" keyProperty="userId" >
+        insert into user (name,email,gender,icon,registerMethod,openId,unionId,emailReply,isInuse)
+        VALUES (#{name},#{email},#{gender},#{icon},#{registerMethod},#{openId},#{unionId},#{emailReply},#{isInuse})
+    </insert>
+
+    <!--通过邮箱查找用户-->
+    <select id="findByEmail" parameterType="string" resultType="User" >
+        select * from user where email = #{email} and registerMethod='localhost' and isInuse = 1
+    </select>
+
+    <!--通过name查找用户-->
+    <select id="findByName" parameterType="string" resultType="User" >
+        select * from user where name = #{name} and isInuse = 1 and registerMethod='localhost'
+    </select>
+
+    <!--通过openId查找用户信息,QQ接入用户-->
+    <select id="findByOpendId" parameterType="string" resultType="User">
+        select * from user where openId = #{openId} and isInuse = 1
+    </select>
+
+    <!--通过unionId查找用户用户信息,wechat接入用户-->
+    <select id="findByUnionId" parameterType="string" resultType="User" >
+        select * from user where unionId = #{unionId} and isInuse = 1
+    </select>
+
+    <!--通过id查找用户-->
+    <select id="findById" parameterType="_int" resultType="User">
+        select * from user where userId = #{userId}
+    </select>
+
+    <!--查找所有用户-->
+    <select id="getAll" resultType="User">
+        select * from user where isInuse = 1
+    </select>
+
+    <!--逻辑删除用户-->
+    <update id="deleteUser" parameterType="_int" >
+       update user set isInuse = 0 where userid = #{userId}
+    </update>
+
+</mapper>

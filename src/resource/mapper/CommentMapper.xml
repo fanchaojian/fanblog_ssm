@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fanchaojian.dao.CommentMapper">
+    <!--
+        /*添加评论*/
+        int addComment(Comment comment) ;
+
+
+        /*通过文章id查找所有的评论,以及评论回复*/
+        List<Comment> findByArticle(int articleId) ;
+
+        /*通过id查找评论*/
+        Comment findById(int commentID) ;
+
+        /*删除评论*/
+        void deleteComment(int commentId) ;
+    -->
+
+    <!--添加评论-->
+    <insert id="addComment" parameterType="map" useGeneratedKeys="true" keyProperty="id" >
+        insert into comment (articleId, content, createDate, type, userId) VALUES
+        (#{articleId}, #{content}, #{createDate}, #{type}, #{userId})
+    </insert>
+
+    <!--通过文章id查找所有的评论以及评论的回复的第一条数据，并统计回复的数量 //// 查询所有的留言及回复-->
+    <select id="findCommentOrGuestbook" parameterType="map" resultMap="selectByArticle">
+        SELECT
+            c.id as commentId,
+            c.articleId,
+            c.content,
+            c.createDate,
+            c.type,
+            (SELECT COUNT(articleId) FROM reply WHERE articleId = c.articleId) AS replyCount,
+
+            u.userId,
+            u.name AS u_name,
+            u.icon AS u_icon,
+
+            r.id AS rId,
+            r.content AS r_content,
+            r.createDate AS r_createDate,
+            r.replyType,
+
+            rfu.userId AS rfuId,
+            rfu.name AS rfu_name,
+            rfu.icon AS rfu_icon
+
+            FROM COMMENT c
+            LEFT JOIN reply r ON r.commentId = c.id
+                AND r.id = (SELECT id FROM reply WHERE articleId = c.articleId AND replyType="comment" LIMIT 1)
+            LEFT JOIN USER u ON c.userId = u.userId
+            LEFT JOIN USER rfu  ON rfu.userId = r.fromUid
+            <where>
+                <if test="articleId != null">
+                    c.articleId = ${articleId}
+                </if>
+                <if test="type != null">
+                    c.type = #{type}
+                </if>
+            </where>
+    </select>
+
+    <resultMap id="selectByArticle" type="Comment">
+        <id property="id" column="commentId" ></id>
+        <result property="articleId" column="articleId" ></result>
+        <result property="content" column="content" ></result>
+        <result property="createDate" column="createDate" ></result>
+        <result property="type" column="type" ></result>
+        <result property="replyCount" column="replyCount" ></result>
+        <association property="user"  javaType="User" >
+            <id property="userId" column="userId" ></id>
+            <result property="name" column="u_name" ></result>
+            <result property="icon" column="u_icon" ></result>
+        </association>
+        <collection property="replys" ofType="Reply">
+            <result property="id" column="rId" ></result>
+            <result property="content" column="r_content" ></result>
+            <result property="createDate" column="r_createDate" ></result>
+            <result property="replyType" column="replyType" ></result>
+            <association property="fromUser" javaType="User" >
+                <result property="userId" column="rfuId" ></result>
+                <result property="name" column="rfu_name" ></result>
+                <result property="icon" column="rfu_icon" ></result>
+            </association>
+        </collection>
+    </resultMap>
+
+
+    <!--通过commentId查找所有的评论及回复-->
+    <select id="findByCommit" parameterType="_int" resultMap="selectByComment">
+        SELECT  c.id AS commentId,
+            c.articleId,
+            c.content,
+            c.createDate,
+            c.type,
+
+            u.userId,
+            u.name AS c_u_name,
+            u.icon AS c_u_icon,
+
+            r.id,
+            r.content AS r_content,
+            r.createDate AS r_createDate,
+            r.replyType,
+
+            rfu.userId AS rfuId,
+            rfu.name AS r_f_u_name,
+            rfu.icon AS r_f_u_icon,
+
+            rtu.userId AS rtuId,
+            rtu.name AS r_t_name,
+            rtu.icon AS r_t_icon
+        FROM COMMENT c
+            LEFT  JOIN USER u ON u.userId = c.userId
+            LEFT  JOIN reply r ON r.commentId = c.id
+            LEFT  JOIN USER rfu ON r.fromUid = rfu.userId
+            LEFT OUTER JOIN USER rtu ON r.toUid = rtu.userID
+        AND c.id = #{commentId}
+    </select>
+    <resultMap id="selectByComment" type="Comment" >
+        <id property="id" column="commentId" ></id>
+        <result property="articleId" column="articleId" ></result>
+        <result property="content" column="content" ></result>
+        <result property="createDate" column="createDate" ></result>
+        <result property="type" column="type" ></result>
+        <association property="user"  javaType="User" >
+            <id property="userId" column="userId" ></id>
+            <result property="name" column="c_u_name" ></result>
+            <result property="icon" column="c_u_icon" ></result>
+        </association>
+        <collection property="replys" ofType="Reply">
+            <result property="id" column="id" ></result>
+            <result property="content" column="r_content" ></result>
+            <result property="createDate" column="r_createDate" ></result>
+            <result property="replyType" column="replyType" ></result>
+            <association property="fromUser" javaType="User" >
+                <result property="userId" column="rfuId" ></result>
+                <result property="name" column="r_f_u_name" ></result>
+                <result property="icon" column="r_f_u_icon" ></result>
+            </association>
+            <association property="toUser" javaType="User" >
+                <result property="userId" column="rtuId" ></result>
+                <result property="name" column="r_t_name" ></result>
+                <result property="icon" column="r_t_icon" ></result>
+            </association>
+        </collection>
+    </resultMap>
+
+
+    <!--通过评论id查找评论-->
+    <select id="findById" parameterType="_int" resultMap="selectComment">
+        select * from comment where id = #{commentId}
+    </select>
+    <resultMap id="selectComment" type="Comment">
+        <association property="user" column="userId" javaType="User" select="findUserById"></association>
+    </resultMap>
+    <select id="findUserById" parameterType="_int" resultType="User">
+      select * from user where userId = #{userId}
+    </select>
+
+
+    <!--通过id删除评论-->
+    <delete id="deleteComment" parameterType="_int" >
+        delete from comment where id = #{commentId}
+    </delete>
+
+
+</mapper>

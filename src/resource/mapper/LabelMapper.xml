@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fanchaojian.dao.LabelMapper">
+
+    <!--通过标签名称查找-->
+    <select id="findByName" parameterType="string" resultType="Label" >
+        select * from label where labelName = #{labelName}
+    </select>
+
+    <!--通过id查找-->
+    <select id="findById" parameterType="_int" resultType="Label">
+        select * from label where labelId = #{labelId}
+    </select>
+
+    <!--查找所有-->
+    <select id="findAll" resultMap="selectAllLabel">
+        SELECT l.labelId,l.labelName,l.remark,COUNT(a.articleId) article_count FROM label l LEFT OUTER JOIN article a ON l.labelId = a.labelid GROUP BY l.labelName
+    </select>
+    <resultMap id="selectAllLabel" type="Label" >
+        <result property="labelId" column="labelId"></result>
+        <result property="labelName" column="labelName"></result>
+        <result property="remark" column="remark"></result>
+        <result property="articleCount" column="article_count" ></result>
+    </resultMap>
+
+    <!--更改-->
+    <update id="updateLabel" parameterType="Label" >
+        update label set labelName = #{labelName}, remark = #{remark} where labelId = #{labelId}
+    </update>
+
+    <!--新增-->
+    <insert id="addLabel" parameterType="Label" useGeneratedKeys="true" keyProperty="labelId">
+        insert into label (labelName,remark,createDate,articleCount) values (#{labelName},#{remark},#{createDate},#{articleCount})
+    </insert>
+
+
+</mapper>

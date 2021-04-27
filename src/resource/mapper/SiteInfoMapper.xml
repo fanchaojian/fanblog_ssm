@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fanchaojian.dao.SiteInfoMapper">
+
+    <!--站点信息-->
+    <select id="getSiteInfo" resultType="SiteInfo">
+        select s.*,b.preOrder from siteinfo s INNER JOIN blogadmin b ON s.siteId = b.siteId group by b.preOrder asc limit 1
+    </select>
+
+    <!--修改基本信息-->
+    <update id="updateSiteInfo" parameterType="SiteInfo" >
+        update siteinfo
+          set logoImg = #{logoImg},siteBgiUrl = #{siteBgiUrl},siteIntroUrl = #{siteIntroUrl},siteName = #{siteName},siteQrcode = #{siteQrcode}
+          where siteId = #{siteId}
+    </update>
+
+    <!--增加网站访问量-->
+    <update id="updateVisitorCount" parameterType="_int">
+        update siteinfo set visitorCount = visitorCount + 1 where siteId = #{siteId}
+    </update>
+
+</mapper>

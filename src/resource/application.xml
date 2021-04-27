@@ -1,0 +1,69 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/tx
+        https://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/aop
+        https://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/mvc
+        https://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+    <!--自动扫描包-->
+    <context:component-scan base-package="com.fanchaojian" />
+
+    <!--引用数据库配置文件-->
+    <context:property-placeholder location="classpath:db.properties"/>
+
+    <!--c3p0数据源配置-->
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="driverClass" value="${jdbc.driver}"/>
+        <property name="jdbcUrl" value="${jdbc.url}"/>
+        <property name="user" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+
+    <!--mybatis相关配置-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"></property>
+        <property name="configLocation" value="classpath:mybatis-config.xml"></property>
+        <property name="typeAliasesPackage" value="com.fanchaojian.pojo"></property>
+        <!--指定mapper映射文件的位置,在mybatis-config.xml中配置mapper也是可以的-->
+        <property name="mapperLocations" value="classpath:*/*.xml"></property>
+    </bean>
+
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+        <property name="basePackage" value="com.fanchaojian.dao"/>
+    </bean>
+
+    <!--配置事务-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+
+
+    <!--配置通知，指定到方法-->
+    <tx:advice id="myAdvice" transaction-manager="transactionManager" >
+        <tx:attributes>
+            <tx:method name="*"/>
+            <tx:method name="find*" />
+        </tx:attributes>
+    </tx:advice>
+
+    <!--AOP配置，切面-->
+    <aop:config>
+        <aop:pointcut id="pt1" expression="execution(* com.fanchaojian.service.*.*(..))"></aop:pointcut>  <!--配置切入点-->
+        <aop:advisor advice-ref="myAdvice" pointcut-ref="pt1"></aop:advisor>
+    </aop:config>
+
+
+</beans>
